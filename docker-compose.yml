@@ -1,0 +1,114 @@
+services:
+  # Contenedor para el servidor web (Apache con PHP)
+  web:
+    build: .
+
+    # Nombre que le damos al contenedor
+    container_name: apache_web
+    volumes:
+      - ./html:/var/www/html
+    
+    # Redirección de puertos
+    # El de la izquierda es el puerto de nuestra máquina y el de la derecha el del contenedor
+    ports:
+      - "8080:80"
+
+    # Red que va a usar
+    networks:
+      - mi_red
+
+  # Contenedor para MySQL
+  mysql_db:
+    #Imagen de la que partimos
+    image: mysql
+
+    # Nombre que le damos al contenedor
+    container_name: mysql_db
+
+    volumes:
+      # Persistencia de datos (opcional, para no perder datos al apagar)
+      - mysql_data:/var/lib/mysql
+      # Mapeamos el script específico de la carpeta bd al entrypoint del contenedor
+      #todo lo que haya allí se ejecutará cuando se cree el contenedor
+      - ./bd/script_cursos_mysql.sql:/docker-entrypoint-initdb.d/init.sql
+
+    # Variables de entorno
+    environment:
+      #Contraseña del usuario root
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: academia
+      #Nombre y contraseña del usuario a crear        
+      MYSQL_USER: usuario                    
+      MYSQL_PASSWORD: oretania
+
+    # Redirección de puertos
+    # El de la izquierda es el puerto de nuestra máquina y el de la derecha el del contenedor
+    ports:
+      - "3307:3306"
+    
+    # Red que va a usar
+    networks:
+      - mi_red
+
+  # Servicio PostgreSQL
+  postgres_db:
+    image: postgres
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5442:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mapeamos el script de Postgres
+      - ./bd/script_cursos_postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    # Red que va a usar
+    networks:
+      - mi_red
+
+  # Contenedor para phpMyAdmin
+  phpmyadmin:
+    #Imagen de la que partimos
+    image: phpmyadmin/phpmyadmin
+
+    # Nombre que le damos al contenedor
+    container_name: phpmyadmin
+
+    # Variables de entorno
+    environment:
+      PMA_HOST: mysql_db
+      PMA_PORT: 3306
+
+      # Debe coincidir con el nombre de usuario y contraseña que hemos
+      # creado para mysql
+      PMA_USER: usuario                    
+      PMA_PASSWORD: oretania
+    
+    #Redirección de puertos
+    ports:
+      - "8081:80"
+    networks:
+      - mi_red
+
+  # (Opcional) Interfaz web para ver las BDs gráficamente
+  adminer:
+    image: adminer
+    container_name: gestor_bd
+    restart: always
+    ports:
+      - "8082:8080"
+    depends_on:
+      - mysql_db
+      - postgres_db
+    # Red que va a usar
+    networks:
+      - mi_red
+
+# Redes usadas por mis contenedores
+networks:
+  mi_red:
+
+volumes:
+  mysql_data:
+  postgres_data:
