@@ -13,7 +13,7 @@ SET CHARACTER SET utf8mb4;
 CREATE USER IF NOT EXISTS 'usuario'@'%' IDENTIFIED BY 'oretania';
 
 -- Le damos TODOS los permisos sobre esta base de datos
-GRANT ALL PRIVILEGES ON gestion_escolar.* TO 'usuario'@'%';
+GRANT ALL PRIVILEGES ON academia.* TO 'usuario'@'%';
 
 -- Aplicamos los cambios de permisos inmediatamente
 FLUSH PRIVILEGES;
